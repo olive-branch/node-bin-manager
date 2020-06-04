@@ -51,7 +51,11 @@ const loadFile = async (url, { log }) => {
 }
 
 const writeToFile = async (src, outfile, { log }) => new Promise((res, rej) => {
-  let $ = src.pipe(fs.createWriteStream(outfile))
+  // default mode is 0o666 - read\write for everybody;
+  // 0o766 - add rights to execute for current user
+  let mode = 0o766
+
+  let $ = src.pipe(fs.createWriteStream(outfile, { mode }))
 
   $.on('finish', () => {
     log('info', `Unpacked to ${outfile}\n`)
