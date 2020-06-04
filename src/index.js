@@ -32,13 +32,12 @@ const toUrl = (platform) => ([key, value]) => {
 
 const toFilename = (key, { out, ext }) => join(out, `${key}${ext}`)
 
-const notInstalled = (opts) => ([key, url]) => {
-  if (!url) {
-    return false
-  }
+const shouldInstall = (opts) => ([key, url]) => {
+  let hasUrl = Boolean(url)
+  let notExists = opts.force || !fs.existsSync(toFilename(key, opts))
+  let keyMatch = !opts.key || opts.key === key
 
-  let filename = toFilename(key, opts)
-  return !fs.existsSync(filename)
+  return hasUrl && notExists && keyMatch
 }
 
 const loadFile = async (url, { log }) => {
@@ -79,8 +78,10 @@ async function main() {
   let out = join(cwd, 'node_modules', '.bin')
   let ext = os.platform() === 'win32' ? '.exe' : ''
   let log = logger()
+  let force = true
+  let key = undefined
 
-  let opts = { out, ext, platform, log }
+  let opts = { out, ext, platform, log, force, key }
 
   await mkdir(out, { recursive: true })
 
@@ -93,7 +94,7 @@ async function main() {
   return await Object
     .entries(binDependencies)
     .map(toUrl(platform))
-    .filter(notInstalled(opts))
+    .filter(shouldInstall(opts))
     .reduce(install(opts), [])
 }
 
