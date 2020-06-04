@@ -1,7 +1,7 @@
 const os = require('os')
 const { join } = require('path')
 const logger = require('./logger')
-const binDependencies = require('./binDependencies')
+const restore = require('./restore')
 
 function main() {
   let log = logger()
@@ -17,7 +17,7 @@ function main() {
     key: undefined
   }
 
-  binDependencies(opts)
+  restore(opts)
     .then((files) => {
       if (files.length > 0) {
         log('info', `Installed dependencies:\n${files.join('\n')}`)
