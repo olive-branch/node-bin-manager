@@ -41,7 +41,7 @@ const shouldInstall = (opts) => ([key, url]) => {
 }
 
 const loadFile = async (url, { log }) => {
-  log('load', url)
+  log('info', url)
 
   let resp = await fetchFile(url)
 
@@ -55,7 +55,7 @@ const writeToFile = async (src, outfile, { log }) => new Promise((res, rej) => {
   let $ = src.pipe(fs.createWriteStream(outfile))
 
   $.on('finish', () => {
-    log('pack', `Unpacked to ${outfile}\n`)
+    log('info', `Unpacked to ${outfile}\n`)
     res()
   })
   $.on('error', e => rej(new Error(`Unable to write to file: ${e.message}`)))
@@ -87,7 +87,7 @@ async function main() {
 
   let { binDependencies } = loadPackageJson(cwd)
   if (!binDependencies) {
-    log('main', 'No binDependencies in package.json')
+    log('info', 'No binDependencies in package.json')
     return
   }
 
