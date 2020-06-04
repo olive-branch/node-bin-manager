@@ -15,7 +15,7 @@
   },
   "devDependencies": {},
   "binDependencies": {
-    "k9": {
+    "k6": {
       "linux-x64": "https://github.com/loadimpact/k6/releases/download/v0.26.2/k6-v0.26.2-linux64.tar.gz",
       "win32-x64": "https://github.com/loadimpact/k6/releases/download/v0.26.2/k6-v0.26.2-win64.zip",
       "darwin-x64": "https://github.com/loadimpact/k6/releases/download/v0.26.2/k6-v0.26.2-mac.zip"

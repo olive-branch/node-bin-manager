@@ -1,32 +1,20 @@
-const { extname } = require('path')
+const { basename, extname } = require('path')
 const zip = require('./zip')
 const gz = require('./gz')
 
-const isExecutable = (platform) => {
-  platform = platform.split('-')[0]
+module.exports = async (stream, archive, { ext }) => {
+  let isExe = file => extname(file) === ext
 
-  return (file) => {
-    let ext = extname(file)
+  let filename, content
 
-    switch (platform) {
-      case 'win32':
-        return ext === '.exe'
-      case 'darwin':
-      case 'linux':
-        return ext === ''
-      default:
-        return false
-    }
-  }
-}
-
-module.exports = async (archive, platform, stream) => {
   switch (extname(archive)) {
     case '.zip':
-      return await zip(stream, isExecutable(platform))
+      [filename, content] = await zip(stream, isExe)
+      return { filename, content }
     case '.gz':
-      return await gz(stream, isExecutable(platform))
+      [filename, content] =  await gz(stream, isExe)
+      return { filename, content }
     default:
-      return [archive, stream]
+      return { filename: basename(archive), content: stream }
   }
 }

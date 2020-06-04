@@ -30,22 +30,18 @@ const toUrl = (platform) => ([key, value]) => {
   throw new TypeError(`Invalid binDependency format for ${key}. Value should be either string or object`)
 }
 
-const toFilename = (dir, key, platform) => {
-  let ext = platform.startsWith('win32') ? '.exe' : ''
+const toFilename = (key, { out, ext }) => join(out, `${key}${ext}`)
 
-  return join(dir, `${key}${ext}`)
-}
-
-const notInstalled = (out, platform) => ([key, url]) => {
+const notInstalled = (opts) => ([key, url]) => {
   if (!url) {
     return false
   }
 
-  let filename = toFilename(out, key, platform)
+  let filename = toFilename(key, opts)
   return !fs.existsSync(filename)
 }
 
-const loadFile = async (url, log) => {
+const loadFile = async (url, { log }) => {
   log('load', url)
 
   let resp = await fetchFile(url)
@@ -56,7 +52,7 @@ const loadFile = async (url, log) => {
   return resp
 }
 
-const writeToFile = async (outfile, src, log) => new Promise((res, rej) => {
+const writeToFile = async (src, outfile, { log }) => new Promise((res, rej) => {
   let $ = src.pipe(fs.createWriteStream(outfile))
 
   $.on('finish', () => {
@@ -66,23 +62,26 @@ const writeToFile = async (outfile, src, log) => new Promise((res, rej) => {
   $.on('error', e => rej(new Error(`Unable to write to file: ${e.message}`)))
 })
 
-const install = (platform, out, log) => async (prev, [key, url]) => {
+const install = (opts) => async (prev, [key, url]) => {
   let prevFiles = await prev
-  let resp = await loadFile(url, log)
-  let [/* filename */, stream] = await decompress(basename(url), platform, resp)
+  let resp = await loadFile(url, opts)
+  let { content } = await decompress(resp, basename(url), opts)
 
-  let outfile = toFilename(out, key, platform)
-  await writeToFile(outfile, stream, log)
+  let outfile = toFilename(key, opts)
+  await writeToFile(content, outfile, opts)
 
   return [...prevFiles, outfile]
 }
 
 async function main() {
-  let cwd = process.cwd()
   let platform = `${os.platform()}-${os.arch}`
+  let cwd = process.cwd()
+  let out = join(cwd, 'node_modules', '.bin')
+  let ext = os.platform() === 'win32' ? '.exe' : ''
   let log = logger()
 
-  let out = join(cwd, 'node_modules', '.bin')
+  let opts = { out, ext, platform, log }
+
   await mkdir(out, { recursive: true })
 
   let { binDependencies } = loadPackageJson(cwd)
@@ -94,8 +93,8 @@ async function main() {
   return await Object
     .entries(binDependencies)
     .map(toUrl(platform))
-    .filter(notInstalled(out, platform))
-    .reduce(install(platform, out, log), [])
+    .filter(notInstalled(opts))
+    .reduce(install(opts), [])
 }
 
 main()
