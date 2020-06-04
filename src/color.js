@@ -39,18 +39,7 @@ const colortag = (fg, bg) => (strings, ...values) => {
   return `${bg || ''}${fg || ''}${result}${COLOR.reset}`
 }
 
-const white = colortag(COLOR.bgWhite, COLOR.fgBlack)
-const red = colortag(COLOR.bgRed, COLOR.fgBlack)
-const green = colortag(COLOR.bgGreen, COLOR.fgBlack)
-const yellow = colortag(COLOR.bgYellow, COLOR.fgBlack)
-const blue = colortag(COLOR.bgBlue, COLOR.fgBlack)
-
 module.exports = {
   COLOR,
   colortag,
-  white,
-  red,
-  green,
-  yellow,
-  blue
 }
