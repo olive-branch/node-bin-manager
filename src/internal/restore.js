@@ -2,9 +2,9 @@ const fs = require('fs')
 const { promisify } = require('util')
 const { join, basename } = require('path')
 
-const parseEntry = require('./internal/config')
-const fetchFile = require('./internal/fetch')
-const decompress = require('./internal/decompress')
+const parseEntry = require('./config')
+const fetchFile = require('./fetch')
+const decompress = require('./decompress')
 
 const mkdir = promisify(fs.mkdir)
 
@@ -18,17 +18,17 @@ const loadPackageJson = (cwd) => {
   }
 }
 
-const toFilename = (key, { out, ext }) => join(out, `${key}${ext}`)
+const toFilename = ({ out, ext }, name) => join(out, `${name}${ext}`)
 
-const shouldInstall = (opts) => ([key, url]) => {
+const shouldInstall = (opts) => ([name, url]) => {
   let hasUrl = Boolean(url)
-  let notExists = opts.force || !fs.existsSync(toFilename(key, opts))
-  let keyMatch = !opts.key || opts.key === key
+  let notExists = opts.force || !fs.existsSync(toFilename(opts, name))
+  let keyMatch = !opts.key || opts.key === name
 
   return hasUrl && notExists && keyMatch
 }
 
-const loadFile = async (url, { log }) => {
+const loadFile = async ({ log }, url) => {
   log('info', url)
 
   let resp = await fetchFile(url)
@@ -40,7 +40,7 @@ const loadFile = async (url, { log }) => {
   return resp
 }
 
-const writeToFile = async (src, outfile, { log }) => new Promise((res, rej) => {
+const writeToFile = async ({ log }, src, outfile) => new Promise((res, rej) => {
   // default mode is 0o666 - read\write for everybody;
   // 0o766 - add rights to execute for current user
   let mode = 0o766
@@ -54,18 +54,25 @@ const writeToFile = async (src, outfile, { log }) => new Promise((res, rej) => {
   $.on('error', e => rej(new Error(`Unable to write to file: ${e.message}`)))
 })
 
-const install = (opts) => async (prev, [key, url]) => {
-  let prevFiles = await prev
-  let resp = await loadFile(url, opts)
-  let { content } = await decompress(resp, basename(url), opts)
 
-  let outfile = toFilename(key, opts)
-  await writeToFile(content, outfile, opts)
+const install = async (opts, url, name) => {
+  let resp = await loadFile(opts, url)
+  let { content, filename } = await decompress(opts, resp, basename(url))
 
-  return [...prevFiles, outfile]
+  let outfile = toFilename(opts, name || filename)
+  await writeToFile(opts, content, outfile)
+
+  return [outfile]
 }
 
-module.exports = async (opts) => {
+const sequentialInstall = (opts) => async (prev, [key, url]) => {
+  let prevFiles = await prev
+  let currFiles = await install(opts, url, key)
+
+  return [...prevFiles, ...currFiles]
+}
+
+const restore = async (opts) => {
   let { out, cwd, log } = opts
 
   await mkdir(out, { recursive: true })
@@ -80,5 +87,7 @@ module.exports = async (opts) => {
     .entries(binDependencies)
     .map(parseEntry(opts))
     .filter(shouldInstall(opts))
-    .reduce(install(opts), [])
+    .reduce(sequentialInstall(opts), [])
 }
+
+module.exports = { install, restore }

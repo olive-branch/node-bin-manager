@@ -2,7 +2,7 @@ const { basename, extname } = require('path')
 const zip = require('./zip')
 const gz = require('./gz')
 
-module.exports = async (stream, archive, { ext }) => {
+module.exports = async ({ ext }, stream, archive) => {
   let isExe = file => extname(file) === ext
 
   let filename, content
