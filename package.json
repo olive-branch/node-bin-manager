@@ -9,9 +9,9 @@
   "author": "n.m.batrakov",
   "license": "MIT",
   "dependencies": {
-    "progress": "^2.0.3",
-    "tar-stream": "^2.1.2",
-    "yauzl": "^2.10.0"
+    "progress": "^2.0.0",
+    "tar-stream": "^2.0.0",
+    "yauzl": "^2.0.0"
   },
   "devDependencies": {},
   "binDependencies": {

@@ -1,6 +1,6 @@
 const os = require('os')
 const { join } = require('path')
-const logger = require('./logger')
+const logger = require('./internal/logger')
 const restore = require('./restore')
 
 function main() {

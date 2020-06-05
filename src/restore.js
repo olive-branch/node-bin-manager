@@ -2,8 +2,8 @@ const fs = require('fs')
 const { promisify } = require('util')
 const { join, basename } = require('path')
 
-const fetchFile = require('./fetch')
-const decompress = require('./decompress')
+const fetchFile = require('./internal/fetch')
+const decompress = require('./internal/decompress')
 
 const mkdir = promisify(fs.mkdir)
 
