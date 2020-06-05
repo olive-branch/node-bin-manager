@@ -2,6 +2,7 @@ const fs = require('fs')
 const { promisify } = require('util')
 const { join, basename } = require('path')
 
+const parseEntry = require('./internal/config')
 const fetchFile = require('./internal/fetch')
 const decompress = require('./internal/decompress')
 
@@ -15,17 +16,6 @@ const loadPackageJson = (cwd) => {
   } else {
     throw new Error('Unable to locate package.json in your working directory')
   }
-}
-
-const toUrl = (platform) => ([key, value]) => {
-  if (typeof value === 'string') {
-    return [key, value]
-  }
-  if (typeof value === 'object') {
-    return [key, value[platform]]
-  }
-
-  throw new TypeError(`Invalid binDependency format for ${key}. Value should be either string or object`)
 }
 
 const toFilename = (key, { out, ext }) => join(out, `${key}${ext}`)
@@ -76,7 +66,7 @@ const install = (opts) => async (prev, [key, url]) => {
 }
 
 module.exports = async (opts) => {
-  let { out, cwd, platform, log } = opts
+  let { out, cwd, log } = opts
 
   await mkdir(out, { recursive: true })
 
@@ -88,7 +78,7 @@ module.exports = async (opts) => {
 
   return await Object
     .entries(binDependencies)
-    .map(toUrl(platform))
+    .map(parseEntry(opts))
     .filter(shouldInstall(opts))
     .reduce(install(opts), [])
 }
