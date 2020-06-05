@@ -11,14 +11,15 @@
   "dependencies": {
     "progress": "^2.0.0",
     "tar-stream": "^2.0.0",
+    "yargs-parser": "^18.1.3",
     "yauzl": "^2.0.0"
   },
   "devDependencies": {},
   "binDependencies": {
     "k6": {
-      "linux-x64": "https://github.com/loadimpact/k6/releases/download/v0.26.2/k6-v0.26.2-linux64.tar.gz",
-      "win32-x64": "https://github.com/loadimpact/k6/releases/download/v0.26.2/k6-v0.26.2-win64.zip",
-      "darwin-x64": "https://github.com/loadimpact/k6/releases/download/v0.26.2/k6-v0.26.2-mac.zip"
+      "linux": "https://github.com/loadimpact/k6/releases/download/v0.26.2/k6-v0.26.2-linux64.tar.gz",
+      "win32": "https://github.com/loadimpact/k6/releases/download/v0.26.2/k6-v0.26.2-win64.zip",
+      "darwin": "https://github.com/loadimpact/k6/releases/download/v0.26.2/k6-v0.26.2-mac.zip"
     }
   }
 }
