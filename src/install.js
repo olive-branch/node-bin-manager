@@ -18,13 +18,14 @@ const toOptions = (args) => {
   let force = args.force || false
 
   let cwd = args.cwd || process.cwd()
-  let out = args.out ? resolve(args.out) : join(cwd, 'node_modules', '.bin')
+  let out = args.out ? resolve(cwd, args.out) : join(cwd, 'node_modules', '.bin')
+  let package = join(cwd, 'package.json')
   let key = args.key || undefined
 
   let platform = args.platform || process.platform
   let ext = platform === 'win32' ? '.exe' : ''
 
-  return { log, platform, cwd, out, ext, force, key, debug }
+  return { log, platform, cwd, out, package, ext, force, key, debug }
 }
 
 module.exports = async (argv, next) => {

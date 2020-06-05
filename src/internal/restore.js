@@ -6,16 +6,35 @@ const parseEntry = require('./config')
 const fetchFile = require('./fetch')
 const decompress = require('./decompress')
 
+const readFile = promisify(fs.readFile)
+const writeFile = promisify(fs.writeFile)
 const mkdir = promisify(fs.mkdir)
 
-const loadPackageJson = (cwd) => {
-  let filepath = join(cwd, 'package.json')
-
-  if (fs.existsSync(filepath)) {
-    return require(filepath)
+const loadPackageJson = async ({ package }, dontThrow) => {
+  if (fs.existsSync(package)) {
+    let content = await readFile(package, 'utf-8')
+    return JSON.parse(content)
+  } else if (dontThrow) {
+    return {}
   } else {
     throw new Error('Unable to locate package.json in your working directory')
   }
+}
+
+const updatePackageJson = async (opts, url, name) => {
+  let packageJson = await loadPackageJson(opts, true)
+  let { binDependencies } = packageJson
+  let { platform, package } = opts
+
+  let newPackageJson = {
+    ...packageJson,
+    binDependencies: {
+      ...binDependencies,
+      [name]: { [platform]: url }
+    }
+  }
+
+  await writeFile(package, JSON.stringify(newPackageJson, null, 2))
 }
 
 const toFilename = ({ out, ext }, name) => join(out, `${name}${ext}`)
@@ -54,13 +73,16 @@ const writeToFile = async ({ log }, src, outfile) => new Promise((res, rej) => {
   $.on('error', e => rej(new Error(`Unable to write to file: ${e.message}`)))
 })
 
-
-const install = async (opts, url, name) => {
+const install = async (opts, url, key) => {
   let resp = await loadFile(opts, url)
   let { content, filename } = await decompress(opts, resp, basename(url))
 
-  let outfile = toFilename(opts, name || filename)
+  let outfile = toFilename(opts, key || filename)
   await writeToFile(opts, content, outfile)
+
+  if (!key) {
+    await updatePackageJson(opts, url, filename)
+  }
 
   return [outfile]
 }
@@ -73,11 +95,11 @@ const sequentialInstall = (opts) => async (prev, [key, url]) => {
 }
 
 const restore = async (opts) => {
-  let { out, cwd, log } = opts
+  let { out, log } = opts
 
   await mkdir(out, { recursive: true })
 
-  let { binDependencies } = loadPackageJson(cwd)
+  let { binDependencies } = await loadPackageJson(opts)
   if (!binDependencies) {
     log('warn', `package.json doesn't have 'binDependencies' key`)
     return []
