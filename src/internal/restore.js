@@ -8,7 +8,6 @@ const decompress = require('./decompress')
 
 const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
-const mkdir = promisify(fs.mkdir)
 
 const loadPackageJson = async ({ package }, dontThrow) => {
   if (fs.existsSync(package)) {
@@ -95,13 +94,9 @@ const sequentialInstall = (opts) => async (prev, [key, url]) => {
 }
 
 const restore = async (opts) => {
-  let { out, log } = opts
-
-  await mkdir(out, { recursive: true })
-
   let { binDependencies } = await loadPackageJson(opts)
   if (!binDependencies) {
-    log('warn', `package.json doesn't have 'binDependencies' key`)
+    opts.log('warn', `package.json doesn't have 'binDependencies' key`)
     return []
   }
 

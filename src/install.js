@@ -1,7 +1,11 @@
+const fs = require('fs')
+const { promisify } = require('util')
 const { join, resolve } = require('path')
 const logger = require('./internal/logger')
 const { restore, install } = require('./internal/restore')
 const parseArgv = require('yargs-parser')
+
+const mkdir = promisify(fs.mkdir)
 
 const alias = {
   out: ['o'],
@@ -37,6 +41,9 @@ module.exports = async (argv, next) => {
   }
 
   let opts = toOptions(args)
+
+  await mkdir(opts.out, { recursive: true })
+
   let files = url
     ? await install(opts, url)
     : await restore(opts)
