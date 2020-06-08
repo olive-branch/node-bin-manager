@@ -1,6 +1,6 @@
 const fs = require('fs')
 const { promisify } = require('util')
-const { join, basename } = require('path')
+const { join, basename, parse: parsePath } = require('path')
 
 const parseEntry = require('./config')
 const fetchFile = require('./fetch')
@@ -8,6 +8,8 @@ const decompress = require('./decompress')
 
 const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
+
+const fileName = (filepath) => parsePath(filepath).name
 
 const loadPackageJson = async ({ package }, dontThrow) => {
   if (fs.existsSync(package)) {
@@ -29,7 +31,10 @@ const updatePackageJson = async (opts, url, name) => {
     ...packageJson,
     binDependencies: {
       ...binDependencies,
-      [name]: { [platform]: url }
+      [name]: {
+        ...binDependencies[name],
+        [platform]: url,
+      }
     }
   }
 
@@ -72,28 +77,37 @@ const writeToFile = async ({ log }, src, outfile) => new Promise((res, rej) => {
   $.on('error', e => rej(new Error(`Unable to write to file: ${e.message}`)))
 })
 
-const install = async (opts, url, key) => {
+const installUrl = async (opts, url, key) => {
   let resp = await loadFile(opts, url)
   let { content, filename } = await decompress(opts, resp, basename(url))
 
   let outfile = toFilename(opts, key || filename)
   await writeToFile(opts, content, outfile)
 
-  if (!key) {
-    await updatePackageJson(opts, url, filename)
-  }
-
   return [outfile]
 }
 
 const sequentialInstall = (opts) => async (prev, [key, url]) => {
   let prevFiles = await prev
-  let currFiles = await install(opts, url, key)
+  let currFiles = await installUrl(opts, url, key)
 
   return [...prevFiles, ...currFiles]
 }
 
-const restore = async (opts) => {
+module.exports.install = async (opts, url) => {
+  let files = await installUrl(opts, url, opts.key)
+  let key = files.length === 1 ? fileName(files[0]) : opts.key
+
+  if (key) {
+    await updatePackageJson(opts, url, key)
+  } else {
+    opts.log('warn', "Unable to infer binary name from url - package.json won't be updated")
+  }
+
+  return files
+}
+
+module.exports.restore = async (opts) => {
   let { binDependencies } = await loadPackageJson(opts)
   if (!binDependencies) {
     opts.log('warn', `package.json doesn't have 'binDependencies' key`)
@@ -106,5 +120,3 @@ const restore = async (opts) => {
     .filter(shouldInstall(opts))
     .reduce(sequentialInstall(opts), [])
 }
-
-module.exports = { install, restore }
