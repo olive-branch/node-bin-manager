@@ -1,14 +1,15 @@
-import { createLogger } from './internal/logger'
-import { middleware, Middleware } from './internal/middleware'
+import { createLogger } from '../internal/util/logger'
+import { middleware } from '../internal/util/middleware'
 import { installCommand } from './install'
+import { CliCommand } from './shared'
 
-const showHelp = <T>(): Middleware<T, Promise<number>> => () => {
+const showHelp = (): CliCommand => () => {
   console.log('HELP')
 
   return Promise.resolve(0)
 }
 
-const catchErrors = <T>(): Middleware<T, Promise<number>> => {
+const catchErrors = (): CliCommand => {
   let log = createLogger()
 
   return (ctx, next) => next(ctx).catch((e: any) => {
@@ -19,7 +20,7 @@ const catchErrors = <T>(): Middleware<T, Promise<number>> => {
 
 let run = middleware(
   catchErrors(),
-  installCommand,
+  installCommand(),
   showHelp(),
 )
 

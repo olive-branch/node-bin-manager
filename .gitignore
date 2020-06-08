@@ -89,7 +89,6 @@ common/temp/**
 package-deps.json
 
 **/dist
-**/lib
 
 todo.md
 data

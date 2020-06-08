@@ -1,6 +1,6 @@
 import ProgressBar from 'progress'
 import { COLOR, colortag } from './color'
-import { LogMessageType, Logger } from './types'
+import { LogMessageType, Logger } from '../types'
 
 const white = colortag(COLOR.bgWhite, COLOR.fgBlack)
 const red = colortag(COLOR.bgRed, COLOR.fgBlack)

@@ -2,7 +2,7 @@ import { Readable } from 'stream'
 import { basename, extname } from 'path'
 import { unzip } from './zip'
 import { gz } from './gz'
-import { RestoreOptions } from './types'
+import { RestoreOptions } from '../types'
 
 export const decompress = async (opts: RestoreOptions, stream: Readable, archive: string) => {
   let filter = () => true

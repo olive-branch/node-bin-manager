@@ -2,10 +2,10 @@ import fs from 'fs'
 import { promisify } from 'util'
 import { join, resolve } from 'path'
 import parseArgv from 'yargs-parser'
-import { createLogger } from './internal/logger'
-import { restore, install } from './internal/restore'
-import { RestoreOptions } from './internal/types'
-import { Middleware } from './internal/middleware'
+import { createLogger } from '../internal/util/logger'
+import { restore, install } from '../lib/restore'
+import { RestoreOptions } from '../internal/types'
+import { CliCommand } from './shared'
 
 const mkdir = promisify(fs.mkdir)
 
@@ -34,7 +34,7 @@ const toOptions = (args: any): RestoreOptions => {
   return { log, platform, cwd, out, configPath, ext, force, key, debug }
 }
 
-export const installCommand: Middleware<string[], Promise<number>> = async (argv, next) => {
+export const installCommand = (): CliCommand => async (argv, next) => {
   let args = parseArgv(argv.slice(2), { alias })
   let [cmd, url] = args._
 
