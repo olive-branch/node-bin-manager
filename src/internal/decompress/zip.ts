@@ -1,6 +1,6 @@
 import { ZipFile, Entry, fromBuffer } from 'yauzl'
 import { Readable } from 'stream'
-import { DecompressionHandler, FileFilter, ArchiveFile } from './types'
+import { DecompressionHandler, DecompressCallback } from './types'
 
 const toBuffer = (stream: Readable): Promise<Buffer> => new Promise((res, rej) => {
   let chunks: Buffer[] = []
@@ -12,44 +12,46 @@ const toBuffer = (stream: Readable): Promise<Buffer> => new Promise((res, rej) =
   stream.on('error', err => rej(new Error(`Unable to read file stream: ${err.message}`)))
 })
 
-const unzipBuffer = (buf: Buffer, filter: FileFilter): Promise<ArchiveFile[]> => new Promise((res, rej) => {
+const unzipBuffer = (buf: Buffer, cb: DecompressCallback): Promise<void> => new Promise((res, rej) => {
   let handleEntry = (zip: ZipFile) => (entry: Entry) => {
-    let filename = entry.fileName
-    let isDirectory = filename.endsWith('/')
+    let filepath = entry.fileName
+    let isFile = !filepath.endsWith('/')
 
-    if (isDirectory || !filter(filename)) {
-      zip.readEntry()
-    } else {
+    if (isFile) {
       zip.openReadStream(entry, (err, content) => {
         if (err) {
           rej(err)
         } else if (content) {
-          res([{ filename, content }])
+          cb(content, filepath).then(() => zip.readEntry())
         } else {
           rej(new Error('Invalid file stream'))
         }
       })
+    } else {
+      zip.readEntry()
     }
   }
 
-  let handleZip = (err: any, zip: ZipFile) => {
+  fromBuffer(buf, { lazyEntries: true }, (err, zip) => {
     if (err) {
       rej(err)
       return
     }
+    if (!zip) {
+      rej(new Error('No content found in zip archive'))
+      return
+    }
 
-    zip.readEntry()
-
-    zip.on('entry', handleEntry(zip))
-    zip.on('error', e => rej(new Error(`Unable to decompress archive using zip: ${e.message}`)))
-    zip.on('end', () => rej(new Error('No executables found in archive')))
-  }
-
-  fromBuffer(buf, { lazyEntries: true }, handleZip)
+    zip
+      .on('entry', handleEntry(zip))
+      .on('end', () => res())
+      .on('error', e => rej(new Error(`Unable to decompress archive using zip: ${e.message}`)))
+      .readEntry()
+  })
 })
 
-export const unzip: DecompressionHandler = async (source, filter) => {
+export const unzip: DecompressionHandler = async (source, cb) => {
   let buf = await toBuffer(source)
 
-  return unzipBuffer(buf, filter)
+  return unzipBuffer(buf, cb)
 }

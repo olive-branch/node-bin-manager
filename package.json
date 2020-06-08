@@ -6,7 +6,8 @@
   "scripts": {
     "start": "ts-node src/cli",
     "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "test:int": "jest -c jest.config.integration.js"
   },
   "author": "n.m.batrakov",
   "license": "MIT",
