@@ -2,19 +2,15 @@ const { basename, extname } = require('path')
 const zip = require('./zip')
 const gz = require('./gz')
 
-module.exports = async ({ ext }, stream, archive) => {
-  let isExe = file => extname(file) === ext
-
-  let filename, content
+module.exports = async (opts, stream, archive) => {
+  let filter = () => true
 
   switch (extname(archive)) {
     case '.zip':
-      [filename, content] = await zip(stream, isExe)
-      return { filename, content }
+      return await zip(stream, filter)
     case '.gz':
-      [filename, content] =  await gz(stream, isExe)
-      return { filename, content }
+      return await gz(stream, filter)
     default:
-      return { filename: basename(archive), content: stream }
+      return [{ filename: basename(archive), content: stream }]
   }
 }

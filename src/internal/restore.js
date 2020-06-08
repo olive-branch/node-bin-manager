@@ -72,19 +72,19 @@ const writeToFile = async ({ log }, src, outfile) => new Promise((res, rej) => {
 
   $.on('finish', () => {
     log('info', `Unpacked to ${outfile}\n`)
-    res()
+    res(outfile)
   })
   $.on('error', e => rej(new Error(`Unable to write to file: ${e.message}`)))
 })
 
 const installUrl = async (opts, url, key) => {
   let resp = await loadFile(opts, url)
-  let { content, filename } = await decompress(opts, resp, basename(url))
+  let files = await decompress(opts, resp, basename(url))
 
-  let outfile = toFilename(opts, key || filename)
-  await writeToFile(opts, content, outfile)
+  let promises = files.map(({ content, filename }) =>
+    writeToFile(opts, content, toFilename(opts, key || filename)))
 
-  return [outfile]
+  return Promise.all(promises)
 }
 
 const sequentialInstall = (opts) => async (prev, [key, url]) => {

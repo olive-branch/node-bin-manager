@@ -18,7 +18,7 @@ const unzip = (buf, filter) => new Promise((res, rej) => {
     if (isDirectory || !filter(filename)) {
       zip.readEntry()
     } else {
-      zip.openReadStream(entry, (err, stream) => err ? rej(err) : res([filename, stream]))
+      zip.openReadStream(entry, (err, content) => err ? rej(err) : res([{ filename, content }]))
     }
   }
 

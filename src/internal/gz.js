@@ -9,7 +9,7 @@ module.exports = (source, filter) => new Promise((res, rej) => {
   stream.on('entry', (headers, stream, next) => {
     let { name, type } = headers
     if (type === 'file' && filter(name)) {
-      res([name, stream])
+      res([{ filename: name, content: stream }])
     } else {
       next()
     }
