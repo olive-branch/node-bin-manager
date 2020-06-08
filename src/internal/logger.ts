@@ -1,16 +1,17 @@
-const ProgressBar = require('progress')
-const { COLOR, colortag } = require('./color')
+import ProgressBar from 'progress'
+import { COLOR, colortag } from './color'
+import { LogMessageType, Logger } from './types'
 
 const white = colortag(COLOR.bgWhite, COLOR.fgBlack)
 const red = colortag(COLOR.bgRed, COLOR.fgBlack)
 const green = colortag(COLOR.bgGreen, COLOR.fgBlack)
 const yellow = colortag(COLOR.bgYellow, COLOR.fgBlack)
 
-const formatType = x => ` ${x.toUpperCase()} `
+const formatType = (x: string) => ` ${x.toUpperCase()} `
 
 const progressHandler = () => {
   let incomplete = ' '
-  let complete = `█`
+  let complete = '█'
   let width = process.stdout.columns > 80 ? 80 : process.stdout.columns
   let clear = true
 
@@ -18,20 +19,20 @@ const progressHandler = () => {
   let bar = colortag(COLOR.fgGreen)`:bar`
   let format = `${label} ${bar} :percent`
 
-  let progress
+  let progress: ProgressBar | undefined
 
-  let create = (total) => new ProgressBar(format, { width, incomplete, complete, clear, total })
+  let create = (total: number) => new ProgressBar(format, { width, incomplete, complete, clear, total })
   let running = () => progress && !progress.complete
-  let tick = (value) => running() && progress.tick(value)
+  let tick = (value: number) => running() && progress!.tick(value)
 
   let stop = () => {
     if (running()) {
-      progress.terminate()
+      progress!.terminate()
       progress = undefined
     }
   }
 
-  return (type, value) => {
+  return (type: LogMessageType, value: any) => {
     switch (type) {
       case 'start':
         progress = create(value)
@@ -49,7 +50,7 @@ const progressHandler = () => {
   }
 }
 
-const logHandler = () => (type, value, ...rest) => {
+const logHandler = (): Logger => (type, value, ...rest) => {
   let label = formatType(type)
 
   switch (type) {
@@ -68,10 +69,10 @@ const logHandler = () => (type, value, ...rest) => {
   }
 }
 
-const combine = (...handlers) => (type, value, ...rest) =>
+const combine = (...handlers: Logger[]): Logger => (type, value, ...rest) =>
   handlers.some(f => f(type, value, ...rest))
 
-module.exports = () => combine(
+export const createLogger = () => combine(
   progressHandler(),
   logHandler(),
 )

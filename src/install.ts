@@ -1,9 +1,11 @@
-const fs = require('fs')
-const { promisify } = require('util')
-const { join, resolve } = require('path')
-const logger = require('./internal/logger')
-const { restore, install } = require('./internal/restore')
-const parseArgv = require('yargs-parser')
+import fs from 'fs'
+import { promisify } from 'util'
+import { join, resolve } from 'path'
+import parseArgv from 'yargs-parser'
+import { createLogger } from './internal/logger'
+import { restore, install } from './internal/restore'
+import { RestoreOptions } from './internal/types'
+import { Middleware } from './internal/middleware'
 
 const mkdir = promisify(fs.mkdir)
 
@@ -16,28 +18,28 @@ const alias = {
   cwd: ['c'],
 }
 
-const toOptions = (args) => {
-  let log = args.quiet ? (() => true) : logger()
+const toOptions = (args: any): RestoreOptions => {
+  let log = args.quiet ? (() => true) : createLogger()
   let debug = args.debug || false
   let force = args.force || false
 
   let cwd = args.cwd || process.cwd()
   let out = args.out ? resolve(cwd, args.out) : join(cwd, 'node_modules', '.bin')
-  let package = join(cwd, 'package.json')
+  let configPath = join(cwd, 'package.json')
   let key = args.key || undefined
 
   let platform = args.platform || process.platform
   let ext = platform === 'win32' ? '.exe' : ''
 
-  return { log, platform, cwd, out, package, ext, force, key, debug }
+  return { log, platform, cwd, out, configPath, ext, force, key, debug }
 }
 
-module.exports = async (argv, next) => {
+export const installCommand: Middleware<string[], Promise<number>> = async (argv, next) => {
   let args = parseArgv(argv.slice(2), { alias })
   let [cmd, url] = args._
 
   if (cmd !== 'install') {
-    return await next(argv)
+    return next(argv)
   }
 
   let opts = toOptions(args)
@@ -53,4 +55,6 @@ module.exports = async (argv, next) => {
   } else {
     opts.log('info', 'No binary dependencies to install')
   }
+
+  return 0
 }

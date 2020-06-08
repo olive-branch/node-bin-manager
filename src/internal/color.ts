@@ -1,4 +1,4 @@
-const COLOR = {
+export const COLOR = {
   reset: '\x1b[0m',
   bright: '\x1b[1m',
   dim: '\x1b[2m',
@@ -26,7 +26,10 @@ const COLOR = {
   bgWhite: '\x1b[47m',
 }
 
-const colortag = (fg, bg) => (strings, ...values) => {
+export const colortag = (fg?: string, bg?: string) => (
+  strings: TemplateStringsArray | string[],
+  ...values: any[]
+) => {
   let result = strings.reduce(
     (acc, str, i) => {
       let val = i < values.length ? values[i] : ''
@@ -37,9 +40,4 @@ const colortag = (fg, bg) => (strings, ...values) => {
   )
 
   return `${bg || ''}${fg || ''}${result}${COLOR.reset}`
-}
-
-module.exports = {
-  COLOR,
-  colortag,
 }

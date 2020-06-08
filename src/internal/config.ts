@@ -1,4 +1,6 @@
-module.exports = ({ platform }) => ([key, value]) => {
+import { RestoreOptions } from './types'
+
+export const parseEntry = ({ platform }: RestoreOptions) => ([key, value]: [string, any]) => {
   if (typeof value === 'string') {
     return [key, value]
   }
