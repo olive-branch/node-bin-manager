@@ -5,6 +5,7 @@ export type LogMessageType = 'start' | 'stop' | 'tick' | 'info' | 'warn' | 'erro
 export type Logger = (type: LogMessageType, value?: any, ...rest: any[]) => void
 
 export type RestoreOptions = DecompressOption & {
+  concurrent: boolean,
   log: Logger,
   debug: boolean,
   force: boolean,

@@ -6,6 +6,8 @@ import { parseEntry, loadConfig, updateConfig } from '../internal/config'
 import { fetch } from '../internal/fetch'
 import { decompress } from '../internal/decompress'
 import { RestoreOptions } from '../internal/types'
+import { flatten } from '../internal/util'
+import { concurrent, sequential } from '../internal/util/promise'
 
 
 const fileName = (filepath: string) => parsePath(filepath).name
@@ -56,15 +58,6 @@ const installUrl = async (opts: RestoreOptions, url: string, key?: string): Prom
   })
 }
 
-const sequentialInstall = (opts: RestoreOptions) => async (
-  prev: Promise<string[]>,
-  [key, url]: [string, string],
-): Promise<string[]> => {
-  let prevFiles = await prev
-  let currFiles = await installUrl(opts, url, key)
-
-  return [...prevFiles, ...currFiles]
-}
 
 export const install = async (opts: RestoreOptions, url: string) => {
   let files = await installUrl(opts, url, opts.key)
@@ -86,9 +79,13 @@ export const restore = async (opts: RestoreOptions) => {
     return []
   }
 
-  return Object
+  let tasks = Object
     .entries(binDependencies)
     .map(parseEntry(opts))
     .filter(shouldInstall(opts))
-    .reduce(sequentialInstall(opts), Promise.resolve([]))
+    .map(([key, url]) => () => installUrl(opts, url!, key))
+
+  let results = opts.concurrent ? concurrent(tasks) : sequential(tasks)
+
+  return results.then(flatten)
 }

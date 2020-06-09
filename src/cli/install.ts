@@ -16,6 +16,7 @@ const alias = {
   key: ['k'],
   quiet: ['q'],
   cwd: ['c'],
+  seq: ['s'],
 }
 
 const toOptions = (args: any): RestoreOptions => {
@@ -31,7 +32,9 @@ const toOptions = (args: any): RestoreOptions => {
   let platform = args.platform || process.platform
   let ext = platform === 'win32' ? '.exe' : ''
 
-  return { log, platform, cwd, out, configPath, ext, force, key, debug }
+  let concurrent = !args.seq
+
+  return { log, platform, cwd, out, configPath, ext, force, key, debug, concurrent }
 }
 
 export const installCommand = (): CliCommand => async (argv, next) => {
