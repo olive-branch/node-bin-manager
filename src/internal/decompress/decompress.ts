@@ -1,20 +1,25 @@
 import { Readable } from 'stream'
 import { relative, dirname, extname } from 'path'
-import { unzip } from './handlers/zip'
-import { ungzip } from './handlers/gz'
+import { handleZip } from './handlers/zip'
+import { handleGzip } from './handlers/gz'
 import { DecompressCallback } from './handlers/types'
 import { pathRoot } from '../util/path'
 import { inferFileType } from './fileType'
-
+import { handleXz } from './handlers/xz'
+import { handleTar } from './handlers/untar'
 
 const unarchive = (stream: Readable, meta: DecompressMeta, cb: DecompressCallback) => {
   let type = inferFileType(extname(meta.filename), meta.mime)
 
   switch (type) {
     case 'zip':
-      return unzip(stream, cb)
+      return handleZip(stream, cb)
+    case 'tar':
+      return handleTar(stream, cb)
     case 'gzip':
-      return ungzip(stream, cb)
+      return handleGzip(stream, cb)
+    case 'xz':
+      return handleXz(stream, cb)
     case 'binary':
       return cb(stream, meta.filename)
     case 'other':

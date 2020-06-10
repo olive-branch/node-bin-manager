@@ -50,7 +50,7 @@ const unzipBuffer = (buf: Buffer, cb: DecompressCallback): Promise<void> => new 
   })
 })
 
-export const unzip: DecompressionHandler = async (source, cb) => {
+export const handleZip: DecompressionHandler = async (source, cb) => {
   let buf = await toBuffer(source)
 
   return unzipBuffer(buf, cb)

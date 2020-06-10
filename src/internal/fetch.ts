@@ -23,7 +23,7 @@ const logRequest = (log: Logger, uri: string) => logEvents({
 
 const logResponse = (log: Logger, uri: string) => logEvents({
   log,
-  events: ['data', 'end'],
+  events: ['end'],
   defaultType: 'tick',
   args: [uri],
   message: (event: string) => {
