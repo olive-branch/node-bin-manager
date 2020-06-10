@@ -1,18 +1,28 @@
 import { Readable } from 'stream'
-import { extname, relative, dirname } from 'path'
-import { unzip } from './zip'
-import { ungzip } from './gz'
-import { DecompressCallback } from './types'
+import { relative, dirname, extname } from 'path'
+import { unzip } from './handlers/zip'
+import { ungzip } from './handlers/gz'
+import { DecompressCallback } from './handlers/types'
 import { pathRoot } from '../util/path'
+import { inferFileType } from './fileType'
 
-const unarchive = (stream: Readable, filepath: string, cb: DecompressCallback) => {
-  switch (extname(filepath)) {
-    case '.zip':
+
+const unarchive = (stream: Readable, meta: DecompressMeta, cb: DecompressCallback) => {
+  let type = inferFileType(extname(meta.filename), meta.mime)
+
+  switch (type) {
+    case 'zip':
       return unzip(stream, cb)
-    case '.gz':
+    case 'gzip':
       return ungzip(stream, cb)
+    case 'binary':
+      return cb(stream, meta.filename)
+    case 'other':
+      throw new Error('Loaded file is not recognized as binary nor archive')
+    case 'unknown':
+      throw new Error('Unable to recognize file type')
     default:
-      return cb(stream, filepath)
+      throw new Error(`${type} archives are not supported`)
   }
 }
 
@@ -30,16 +40,24 @@ const filterPath = (opts: DecompressOption) => (filepath: string): boolean => {
   return !ignore && include
 }
 
+
 export type DecompressOption = {
   includeRootDir?: boolean,
   ignore?: RegExp,
   include?: RegExp,
 }
 
+export type DecompressMeta = {
+  mime?: string,
+  filename: string,
+}
+
+export { DecompressCallback } from './handlers/types'
+
 export const decompress = async <T>(
   opts: DecompressOption,
   stream: Readable,
-  filepath: string,
+  meta: DecompressMeta,
   cb: DecompressCallback<T>,
 ): Promise<T[]> => {
   let map = updatePath(opts)
@@ -47,7 +65,7 @@ export const decompress = async <T>(
 
   let data: T[] = []
 
-  await unarchive(stream, filepath, async (src, file) => {
+  await unarchive(stream, meta, async (src, file) => {
     if (filter(file)) {
       let item = await cb(src, map(file))
       data.push(item)

@@ -4,7 +4,7 @@ import { Readable } from 'stream'
 
 import { parseEntry, loadConfig, updateConfig } from '../internal/config'
 import { fetch } from '../internal/fetch'
-import { decompress, DecompressOption } from '../internal/decompress'
+import { decompress, DecompressOption, DecompressMeta } from '../internal/decompress'
 
 import { flatten } from '../internal/util'
 import { concurrent, sequential } from '../internal/util/promise'
@@ -40,7 +40,12 @@ const saveFile = async (src: Readable, outfile: string): Promise<string> =>
 const installUrl = async (opts: RestoreOptions, url: string, key?: string): Promise<string[]> => {
   let resp = await fetch(opts, url)
 
-  return decompress(opts, resp, basename(url), (content, filepath) => {
+  let meta: DecompressMeta = {
+    mime: resp.headers['content-type'],
+    filename: basename(url),
+  }
+
+  return decompress(opts, resp, meta, (content, filepath) => {
     if (!key && !filepath) {
       return Promise.reject(new Error('Unable to infer binary filename from archive'))
     }

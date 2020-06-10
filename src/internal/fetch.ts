@@ -64,10 +64,14 @@ const followRedirects = (opts: RequestOptions, source: string, max: number) => (
   let { statusCode, headers } = response
   let { location } = headers
 
-  if (max > 1 && redirect(statusCode) && location) {
-    return request(opts, location, source).then(followRedirects(opts, source, max - 1))
+  if (redirect(statusCode)) {
+    if (max > 1 && location) {
+      return request(opts, location, source).then(followRedirects(opts, source, max - 1))
+    } else {
+      return Promise.reject(new Error(`Too many redirects: ${source}`))
+    }
   } else {
-    return Promise.reject(new Error(`Too many redirects: ${source}`))
+    return Promise.resolve(response)
   }
 }
 
