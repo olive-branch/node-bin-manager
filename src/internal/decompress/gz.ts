@@ -11,7 +11,7 @@ export const ungzip: DecompressionHandler = (source, cb) => new Promise((res, re
     let { name: filepath, type } = headers
 
     if (type === 'file') {
-      cb(content, filepath).then(() => next())
+      cb(content, filepath).then(next).catch(rej)
     } else {
       next()
     }

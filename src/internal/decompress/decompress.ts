@@ -1,5 +1,5 @@
 import { Readable } from 'stream'
-import { extname, relative } from 'path'
+import { extname, relative, dirname } from 'path'
 import { unzip } from './zip'
 import { ungzip } from './gz'
 import { DecompressCallback } from './types'
@@ -16,10 +16,12 @@ const unarchive = (stream: Readable, filepath: string, cb: DecompressCallback) =
   }
 }
 
+const hasDirs = (filepath: string) => dirname(filepath) !== '.'
+
 const removeRoot = (filepath: string) => relative(pathRoot(filepath), filepath)
 
 const updatePath = (opts: DecompressOption) => (filepath: string): string =>
-  opts.includeRootDir ? filepath : removeRoot(filepath)
+  opts.includeRootDir || !hasDirs(filepath) ? filepath : removeRoot(filepath)
 
 const filterPath = (opts: DecompressOption) => (filepath: string): boolean => {
   let ignore = opts.ignore && opts.ignore.test(filepath)

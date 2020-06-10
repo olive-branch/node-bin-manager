@@ -70,4 +70,12 @@ describe('gzip', () => {
 
     expect(actual).toEqual(expected)
   })
+
+  it('rejects if callback rejects', async () => {
+    let src = fs.createReadStream('./data/single.tar.gz')
+
+    let actual = ungzip(src, () => Promise.reject(new Error('test')))
+
+    await expect(actual).rejects.toThrowError('test')
+  })
 })

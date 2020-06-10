@@ -22,7 +22,7 @@ const unzipBuffer = (buf: Buffer, cb: DecompressCallback): Promise<void> => new 
         if (err) {
           rej(err)
         } else if (content) {
-          cb(content, filepath).then(() => zip.readEntry())
+          cb(content, filepath).then(() => zip.readEntry()).catch(rej)
         } else {
           rej(new Error('Invalid file stream'))
         }

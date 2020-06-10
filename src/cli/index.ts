@@ -1,4 +1,4 @@
-import { createLogger } from '../internal/util/logger'
+import { createLogger } from '../internal/logger'
 import { middleware } from '../internal/util/middleware'
 import { installCommand } from './install'
 import { CliCommand } from './shared'

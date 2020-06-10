@@ -70,4 +70,12 @@ describe('zip', () => {
 
     expect(actual).toEqual(expected)
   })
+
+  it('rejects if callback rejects', async () => {
+    let src = fs.createReadStream('./data/single.zip')
+
+    let actual = unzip(src, () => Promise.reject(new Error('test')))
+
+    await expect(actual).rejects.toThrowError('test')
+  })
 })

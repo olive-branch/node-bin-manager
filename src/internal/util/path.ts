@@ -13,4 +13,3 @@ export const pathRoot = (filepath: string) => {
 
   return parent
 }
-

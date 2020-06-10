@@ -83,4 +83,15 @@ describe('decompress', () => {
 
     expect(actual.map(x => x.filepath)).toEqual(expected)
   })
+
+  it.only('decompress archive without root dir', async () => {
+    let filepath = './data/rootless.zip'
+    let src = fs.createReadStream(filepath)
+
+    let actual = await sut({}, src, filepath)
+
+    let expected: string[] = ['rootless.txt']
+
+    expect(actual.map(x => x.filepath)).toEqual(expected)
+  })
 })
