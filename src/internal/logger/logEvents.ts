@@ -1,3 +1,6 @@
+import { EventEmitter } from 'events'
+import { Logger, LogMessageType } from './types'
+
 export type LogEmitterOptions = {
   log: Logger,
   events?: string[],
