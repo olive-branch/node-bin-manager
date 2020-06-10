@@ -3,8 +3,8 @@ import { Readable } from 'stream'
 import { decompress, DecompressOption } from './decompress'
 
 type File = { content: Readable, filepath: string }
-const sut = (opts: DecompressOption, src: Readable, archive: string) =>
-  decompress(opts, src, archive, async (content, filepath) => ({ content, filepath } as File))
+const sut = (opts: DecompressOption, src: Readable, filename: string) =>
+  decompress(opts, src, { filename }, async (content, filepath) => ({ content, filepath } as File))
 
 describe('decompress', () => {
   it('decompress zip', async () => {

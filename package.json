@@ -7,6 +7,7 @@
     "start": "ts-node src/cli",
     "build": "tsc",
     "test": "jest",
+    "test:unit": "jest -c jest.config.unit.js",
     "test:int": "jest -c jest.config.integration.js"
   },
   "author": "n.m.batrakov",
