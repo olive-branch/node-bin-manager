@@ -115,8 +115,13 @@ export const restore = async (opts: RestoreOptions) => {
 
 function logStartup(opts: BaseOptions, urls: string[]) {
   let { log, platform, configPath } = opts
-  let packages = urls.map(x => `    - ${x}`).join('\n')
 
+  if (urls.length === 0) {
+    log('stop', 'Nothing to install')
+    return
+  }
+
+  let packages = urls.map(x => `    - ${x}`).join('\n')
   let startMsg = `Restoring binDependencies from '${configPath}' for '${platform}'
 
 The following binaries will be downloaded:
