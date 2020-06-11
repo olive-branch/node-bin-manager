@@ -1,5 +1,6 @@
 import ora from 'ora'
 import { CreateLoggerOptions, LogMessageType } from './types'
+import { bounce } from './frames'
 
 const formatMessage = ({ debug }: CreateLoggerOptions, ...values: any[]) => values.reduce(
   (acc, x) => {
@@ -26,7 +27,13 @@ export const rawHandler = (opts: CreateLoggerOptions) => (_: LogMessageType, ...
 }
 
 export const spinnerHandler = (opts: CreateLoggerOptions) => {
-  let spinner = ora()
+  let spinner = ora({
+    spinner: {
+      interval: 100,
+      frames: bounce(5, '∙', '●'),
+    },
+    color: 'green',
+  })
 
   let updateText = (msg: string) => { spinner.text = msg }
 
