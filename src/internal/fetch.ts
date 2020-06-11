@@ -2,7 +2,12 @@ import http from 'http'
 import https from 'https'
 import { Logger, logEvents } from './logger'
 
-type RequestOptions = { log: Logger }
+type RequestOptions = {
+  log: Logger,
+  maxRetries?: number,
+  maxRedirects?: number
+}
+
 type Response = http.IncomingMessage
 
 const success = (x?: number) => x && x >= 200 && x <= 299
@@ -75,6 +80,17 @@ const followRedirects = (opts: RequestOptions, source: string, max: number) => (
   }
 }
 
+const retryOnFailure = async (max: number, req: () => Promise<Response>): Promise<Response> => {
+  let response = await req()
+  let { statusCode } = response
+
+  if (success(statusCode) || max <= 1) {
+    return Promise.resolve(response)
+  } else {
+    return retryOnFailure(max - 1, req)
+  }
+}
+
 const ensureSuccessStatusCode = (url: string) => (response: Response) => {
   let { statusCode } = response
 
@@ -85,6 +101,11 @@ const ensureSuccessStatusCode = (url: string) => (response: Response) => {
   }
 }
 
-export const fetch = (opts: RequestOptions, uri: string) => request(opts, uri)
-  .then(followRedirects(opts, uri, 5))
-  .then(ensureSuccessStatusCode(uri))
+export const fetch = (opts: RequestOptions, uri: string) => {
+  let retries = opts.maxRetries || 3
+  let redirects = opts.maxRedirects || 5
+
+  let req = () => request(opts, uri).then(followRedirects(opts, uri, redirects))
+
+  return retryOnFailure(retries, req).then(ensureSuccessStatusCode(uri))
+}
