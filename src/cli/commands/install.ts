@@ -1,13 +1,9 @@
-import fs from 'fs'
-import { promisify } from 'util'
 import { join, resolve } from 'path'
 import parseArgv from 'yargs-parser'
 import { createLogger } from '../../internal/logger'
 import { restore, install, RestoreOptions } from '../../lib/restore'
 import { CommandHandler, CommandConfig, toArgsAliases, Command } from '../shared'
 import { Platform } from '../../internal/config'
-
-const mkdir = promisify(fs.mkdir)
 
 type CommandArgs = {
   quiet?: boolean,
@@ -80,7 +76,8 @@ const toOptions = (args: CommandArgs): RestoreOptions => {
     cwd,
     platform,
     log: createLogger(args),
-    out: args.out ? resolve(cwd, args.out) : join(cwd, 'node_modules', '.bin'),
+    outRaw: args.out,
+    out: args.out ? resolve(cwd, args.out!) : join(cwd, 'node_modules', '.bin'),
     configPath: join(cwd, 'package.json'),
     ext: platform === 'win32' ? '.exe' : '',
     force: args.force || false,
@@ -99,9 +96,6 @@ const handler: CommandHandler = async (argv, next) => {
   }
 
   let opts = toOptions(args as any)
-
-  await mkdir(opts.out, { recursive: true })
-
   let promise = url ? install(opts, url) : restore(opts)
 
   return promise

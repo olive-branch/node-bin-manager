@@ -1,8 +1,9 @@
 import fs from 'fs'
+import { promisify } from 'util'
 import { join, basename, parse as parsePath } from 'path'
 import { Readable } from 'stream'
 
-import { parseEntry, loadConfig, updateConfig } from '../internal/config'
+import { fromEntries, loadConfig, updateConfig } from '../internal/config'
 import { fetch } from '../internal/fetch'
 import { decompress, DecompressOption, DecompressMeta } from '../internal/decompress'
 
@@ -12,15 +13,17 @@ import { CreateLoggerOptions } from '../internal/logger'
 
 import { BaseOptions } from './types'
 
+const mkdir = promisify(fs.mkdir)
 
 const fileName = (filepath: string) => parsePath(filepath).name
 
 const toFilename = ({ out, ext }: BaseOptions, name: string) => join(out, `${name}${ext}`)
 
-const shouldInstall = (opts: RestoreOptions) => ([name, url]: [string, string]) => {
+const shouldInstall = (opts: RestoreOptions) => (ctx: InstallContext) => {
+  let { url, key } = ctx
   let hasUrl = Boolean(url)
-  let notExists = opts.force || !fs.existsSync(toFilename(opts, name))
-  let keyMatch = !opts.key || opts.key === name
+  let notExists = !key || (opts.force || !fs.existsSync(toFilename(ctx, key)))
+  let keyMatch = !opts.key || opts.key === key
 
   return hasUrl && notExists && keyMatch
 }
@@ -37,20 +40,22 @@ const saveFile = async (src: Readable, outfile: string): Promise<string> =>
     $.on('error', e => rej(new Error(`Unable to write to file: ${e.message}`)))
   })
 
-const installUrl = async (opts: RestoreOptions, url: string, key?: string): Promise<string[]> => {
-  let resp = await fetch(opts, url)
+const installUrl = async (opts: InstallContext): Promise<string[]> => {
+  let resp = await fetch(opts, opts.url)
 
   let meta: DecompressMeta = {
     mime: resp.headers['content-type'],
-    filename: basename(url),
+    filename: basename(opts.url),
   }
 
+  await mkdir(opts.out, { recursive: true })
+
   return decompress(opts, resp, meta, (content, filepath) => {
-    if (!key && !filepath) {
+    if (!opts.key && !filepath) {
       return Promise.reject(new Error('Unable to infer binary filename from archive'))
     }
 
-    let name = toFilename(opts, key || fileName(filepath))
+    let name = toFilename(opts, opts.key || fileName(filepath))
 
     return saveFile(content, name)
   })
@@ -67,15 +72,21 @@ export type RestoreOptions =
     key: string | undefined,
   }
 
+type InstallContext =
+  & RestoreOptions
+  & { url: string }
+
 export const install = async (opts: RestoreOptions, url: string) => {
   logStartup(opts, [url])
-  let files = await installUrl(opts, url, opts.key)
+  let files = await installUrl({ ...opts, url })
   logComplete(opts, files)
 
   let key = files.length === 1 ? fileName(files[0]) : opts.key
+  let out = opts.outRaw
+
   if (key) {
     opts.log('start', 'Updating package.json')
-    await updateConfig(opts.configPath, key, { [opts.platform]: url })
+    await updateConfig(opts.configPath, key, { out, [opts.platform]: url })
     opts.log('stop', 'Updated package.json')
   } else {
     opts.log('warn', "Unable to infer binary name from url - package.json won't be updated")
@@ -91,19 +102,20 @@ export const restore = async (opts: RestoreOptions) => {
     return []
   }
 
-  let urls = Object
+  let ctx = Object
     .entries(binDependencies)
-    .map(parseEntry(opts))
+    .map(fromEntries(opts))
+    .map(x => ({ ...opts, ...x }) as InstallContext)
     .filter(shouldInstall(opts))
 
-  logStartup(opts, urls.map(([, url]) => url!))
-
-  let tasks = urls.map(([key, url]) => () => installUrl(opts, url!, key))
+  logStartup(opts, ctx.map(({ url }) => url))
 
   let onReject = (e: Error): string[] => {
     opts.log('error', e)
     return []
   }
+
+  let tasks = ctx.map(x => () => installUrl(x))
   let results = opts.concurrent ? concurrent(tasks, onReject) : sequential(tasks, onReject)
   let files = await results.then(flatten)
 

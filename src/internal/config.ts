@@ -9,9 +9,14 @@ export type Platform =
   | 'linux'
   | 'win32'
 
-export type PlatformUrl = { [K in Platform]?: string }
+type DependecySources = { [K in Platform]?: string }
 
-export type DependencyEntry = string | PlatformUrl
+export type DependencyOptions = DependecySources & {
+  url?: string,
+  out?: string,
+}
+
+export type DependencyEntry = string | DependencyOptions
 
 export type Config = {
   binDependencies?: {
@@ -19,13 +24,24 @@ export type Config = {
   }
 }
 
-export type ParseEntryOptions = { platform: Platform }
-export const parseEntry = ({ platform }: ParseEntryOptions) => ([key, value]: [string, DependencyEntry]) => {
+export type ParseEntryOptions = { platform: Platform, out: string }
+export type DependencyConfig = {
+  key: string,
+  url: string,
+  out: string,
+}
+export const fromEntries = ({ platform, out }: ParseEntryOptions) => ([key, value]: [string, DependencyEntry]): DependencyConfig => {
   if (typeof value === 'string') {
-    return [key, value]
+    return { key, out, url: value }
   }
   if (typeof value === 'object') {
-    return [key, value[platform]]
+    let url = value[platform] || value.url
+
+    if (!url) {
+      throw new Error('')
+    }
+
+    return { key, url, out: value.out || out }
   }
 
   throw new TypeError(`Invalid binDependency format for ${key}. Value should be either string or object`)
@@ -42,7 +58,7 @@ export const loadConfig = async (configPath: string, dontThrow?: boolean): Promi
   }
 }
 
-export const updateConfig = async (configPath: string, key: string, value: PlatformUrl) => {
+export const updateConfig = async (configPath: string, key: string, value: DependencyOptions) => {
   let config = await loadConfig(configPath, true)
 
   let binDependencies = config.binDependencies || {}

@@ -7,5 +7,6 @@ export type BaseOptions = {
   configPath: string,
   cwd: string,
   out: string,
+  outRaw?: string,
   log: Logger,
 }
