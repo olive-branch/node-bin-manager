@@ -1,6 +1,6 @@
 import zlib from 'zlib'
 import { DecompressionHandler } from './types'
-import { handleTar } from './untar'
+import { handleTar } from './tar'
 
 
 export const handleGzip: DecompressionHandler = (source, cb) => {

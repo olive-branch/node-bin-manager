@@ -6,7 +6,7 @@ import { DecompressCallback } from './handlers/types'
 import { pathRoot } from '../util/path'
 import { inferFileType } from './fileType'
 import { handleXz } from './handlers/xz'
-import { handleTar } from './handlers/untar'
+import { handleTar } from './handlers/tar'
 
 const unarchive = (stream: Readable, meta: DecompressMeta, cb: DecompressCallback) => {
   let type = inferFileType(extname(meta.filename), meta.mime)
@@ -39,17 +39,19 @@ const updatePath = (opts: DecompressOption) => (filepath: string): string =>
   opts.includeRootDir || !hasDirs(filepath) ? filepath : removeRoot(filepath)
 
 const filterPath = (opts: DecompressOption) => (filepath: string): boolean => {
-  let ignore = opts.ignore && opts.ignore.test(filepath)
-  let include = !opts.include || opts.include.test(filepath)
+  let match = (x: RegExp) => x.test(filepath)
 
-  return !ignore && include
+  let exclude = opts.exclude && opts.exclude.some(match)
+  let include = !opts.include || opts.include.length === 0 || opts.include.some(match)
+
+  return !exclude && include
 }
 
 
 export type DecompressOption = {
   includeRootDir?: boolean,
-  ignore?: RegExp,
-  include?: RegExp,
+  exclude?: RegExp[],
+  include?: RegExp[],
 }
 
 export type DecompressMeta = {
@@ -71,10 +73,14 @@ export const decompress = async <T>(
   let data: T[] = []
 
   await unarchive(stream, meta, async (src, file) => {
-    if (filter(file)) {
-      let item = await cb(src, map(file))
+    let filepath = map(file)
+
+    if (filter(filepath)) {
+      let item = await cb(src, filepath)
       data.push(item)
     }
+
+    src.resume()
   })
 
   return data

@@ -1,6 +1,6 @@
 import { createDecompressor } from 'lzma-native'
 import { DecompressionHandler } from './types'
-import { handleTar } from './untar'
+import { handleTar } from './tar'
 
 export const handleXz: DecompressionHandler = (source, cb) => {
   let unzip = createDecompressor()

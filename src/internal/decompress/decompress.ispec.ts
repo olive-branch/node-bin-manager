@@ -48,12 +48,12 @@ describe('decompress', () => {
     expect(actual.map(x => x.filepath)).toEqual(expected)
   })
 
-  it('ignore files', async () => {
+  it('exclude files', async () => {
     let filepath = './data/multiple.tar.gz'
-    let ignore = /sub\//ig
+    let exclude = [/sub\//ig]
     let src = fs.createReadStream(filepath)
 
-    let actual = await sut({ ignore }, src, filepath)
+    let actual = await sut({ exclude }, src, filepath)
 
     let expected = ['two.txt', 'one.txt']
 
@@ -62,7 +62,7 @@ describe('decompress', () => {
 
   it('include files', async () => {
     let filepath = './data/multiple.tar.gz'
-    let include = /sub\//ig
+    let include = [/sub\//ig]
     let src = fs.createReadStream(filepath)
 
     let actual = await sut({ include }, src, filepath)
@@ -72,12 +72,12 @@ describe('decompress', () => {
     expect(actual.map(x => x.filepath)).toEqual(expected)
   })
 
-  it('ignore take precedence over include', async () => {
+  it('ignore take precedence over invlude', async () => {
     let filepath = './data/multiple.tar.gz'
     let regexp = /sub\//ig
     let src = fs.createReadStream(filepath)
 
-    let actual = await sut({ include: regexp, ignore: regexp }, src, filepath)
+    let actual = await sut({ include: [regexp], exclude: [regexp] }, src, filepath)
 
     let expected: string[] = []
 
@@ -93,5 +93,14 @@ describe('decompress', () => {
     let expected: string[] = ['rootless.txt']
 
     expect(actual.map(x => x.filepath)).toEqual(expected)
+  })
+
+  it('complete stream read', async () => {
+    let filepath = './data/multiple.tar.gz'
+    let src = fs.createReadStream(filepath)
+
+    let actual = await sut({}, src, filepath)
+
+    expect(actual.some(x => x.content.readable)).toBeFalsy()
   })
 })
