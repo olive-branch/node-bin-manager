@@ -5,13 +5,12 @@ import { Readable } from 'stream'
 
 import { fromEntries, loadConfig, updateConfig, DependencyConfig } from '../internal/config'
 import { fetch } from '../internal/fetch'
-import { decompress, DecompressOption, DecompressMeta } from '../internal/decompress'
-
+import { decompress, DecompressMeta } from '../internal/decompress'
 import { flatten } from '../internal/util'
 import { concurrent, sequential } from '../internal/util/promise'
-import { CreateLoggerOptions } from '../internal/logger'
 
-import { BaseOptions } from './types'
+import { BaseOptions, RestoreOptions, InstallContext } from './types'
+
 
 const mkdir = promisify(fs.mkdir)
 
@@ -28,17 +27,16 @@ const shouldInstall = (opts: RestoreOptions) => (ctx: InstallContext) => {
   return hasUrl && notExists && keyMatch
 }
 
-const saveFile = async (src: Readable, outfile: string): Promise<string> =>
-  new Promise((res, rej) => {
-    // default mode is 0o666 - read\write for everybody;
-    // 0o766 - add rights to execute for current user
-    let mode = 0o766
+const saveFile = async (src: Readable, outfile: string): Promise<string> => new Promise((res, rej) => {
+  // default mode is 0o666 - read\write for everybody;
+  // 0o766 - add rights to execute for current user
+  let mode = 0o766
 
-    let $ = src.pipe(fs.createWriteStream(outfile, { mode }))
+  let $ = src.pipe(fs.createWriteStream(outfile, { mode }))
 
-    $.on('finish', () => res(outfile))
-    $.on('error', e => rej(new Error(`Unable to write to file: ${e.message}`)))
-  })
+  $.on('finish', () => res(outfile))
+  $.on('error', e => rej(new Error(`Unable to write to file: ${e.message}`)))
+})
 
 const toInstallContext = (opts: RestoreOptions) => (x: DependencyConfig): InstallContext => {
   let url = x.url!
@@ -48,20 +46,37 @@ const toInstallContext = (opts: RestoreOptions) => (x: DependencyConfig): Instal
   return { ...opts, ...x, url, exclude, include }
 }
 
+const logStartup = (opts: BaseOptions, urls: string[]) => {
+  let { log, platform, configPath } = opts
 
-export type RestoreOptions =
-  & DecompressOption
-  & CreateLoggerOptions
-  & BaseOptions
-  & {
-    concurrent: boolean,
-    force: boolean,
-    key: string | undefined,
+  if (urls.length === 0) {
+    log('stop', 'Nothing to install')
+    return
   }
 
-export type InstallContext =
-  & RestoreOptions
-  & { url: string }
+  let packages = urls.map(x => `    - ${x}`).join('\n')
+  let startMsg = `Restoring binDependencies from '${configPath}' for '${platform}'
+
+The following binaries will be downloaded:
+${packages}
+`
+
+  log('info', startMsg)
+  log('start')
+}
+
+const logComplete = (opts: BaseOptions, files: string[]) => {
+  let { log } = opts
+  let bins = files.map(x => `    - ${x}`).join('\n')
+
+  if (bins.length === 0) {
+    log('stop')
+  } else {
+    log('stop', `Installed binaries:\n${bins}`)
+  }
+}
+
+export * from './types'
 
 export const installContext = async (opts: InstallContext): Promise<string[]> => {
   let resp = await fetch(opts, opts.url)
@@ -130,35 +145,4 @@ export const restore = async (opts: RestoreOptions) => {
   logComplete(opts, files)
 
   return files
-}
-
-
-function logStartup(opts: BaseOptions, urls: string[]) {
-  let { log, platform, configPath } = opts
-
-  if (urls.length === 0) {
-    log('stop', 'Nothing to install')
-    return
-  }
-
-  let packages = urls.map(x => `    - ${x}`).join('\n')
-  let startMsg = `Restoring binDependencies from '${configPath}' for '${platform}'
-
-The following binaries will be downloaded:
-${packages}
-`
-
-  log('info', startMsg)
-  log('start')
-}
-
-function logComplete(opts: BaseOptions, files: string[]) {
-  let { log } = opts
-  let bins = files.map(x => `    - ${x}`).join('\n')
-
-  if (bins.length === 0) {
-    log('stop')
-  } else {
-    log('stop', `Installed binaries:\n${bins}`)
-  }
 }

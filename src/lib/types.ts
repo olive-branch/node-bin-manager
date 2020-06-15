@@ -1,5 +1,6 @@
 import { Platform } from '../internal/config'
-import { Logger } from '../internal/logger'
+import { Logger, CreateLoggerOptions } from '../internal/logger'
+import { DecompressOption } from '../internal/decompress'
 
 export type BaseOptions = {
   platform: Platform,
@@ -10,3 +11,17 @@ export type BaseOptions = {
   outRaw?: string,
   log: Logger,
 }
+
+export type RestoreOptions =
+  & DecompressOption
+  & CreateLoggerOptions
+  & BaseOptions
+  & {
+    concurrent: boolean,
+    force: boolean,
+    key: string | undefined,
+  }
+
+export type InstallContext =
+  & RestoreOptions
+  & { url: string }
