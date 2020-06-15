@@ -27,8 +27,8 @@ export type Config = {
 export type ParseEntryOptions = { platform: Platform, out: string }
 export type DependencyConfig = {
   key: string,
-  url: string,
   out: string,
+  url?: string,
 }
 export const fromEntries = ({ platform, out }: ParseEntryOptions) => ([key, value]: [string, DependencyEntry]): DependencyConfig => {
   if (typeof value === 'string') {
@@ -36,10 +36,6 @@ export const fromEntries = ({ platform, out }: ParseEntryOptions) => ([key, valu
   }
   if (typeof value === 'object') {
     let url = value[platform] || value.url
-
-    if (!url) {
-      throw new Error('')
-    }
 
     return { key, url, out: value.out || out }
   }

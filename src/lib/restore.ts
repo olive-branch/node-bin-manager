@@ -108,7 +108,7 @@ export const restore = async (opts: RestoreOptions) => {
     .map(x => ({ ...opts, ...x }) as InstallContext)
     .filter(shouldInstall(opts))
 
-  logStartup(opts, ctx.map(({ url }) => url))
+  logStartup(opts, ctx.map(({ url }) => url!))
 
   let onReject = (e: Error): string[] => {
     opts.log('error', e)
