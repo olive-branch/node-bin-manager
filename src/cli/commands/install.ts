@@ -44,7 +44,7 @@ const config: CommandConfig<CommandArgs> = {
     },
     config: {
       value: 'path',
-      desc: 'Path to configuration file; default is package.json in working directory'
+      desc: 'Path to configuration file; default is package.json in working directory',
     },
     out: {
       alias: ['o'],
