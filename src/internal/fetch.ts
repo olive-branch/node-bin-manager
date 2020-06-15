@@ -81,7 +81,18 @@ const followRedirects = (opts: RequestOptions, source: string, max: number) => (
 }
 
 const retryOnFailure = async (max: number, req: () => Promise<Response>): Promise<Response> => {
-  let response = await req()
+  let response: http.IncomingMessage
+
+  try {
+    response = await req()
+  } catch (e) {
+    if (max <= 1) {
+      throw e
+    } else {
+      return retryOnFailure(max - 1, req)
+    }
+  }
+
   let { statusCode } = response
 
   if (success(statusCode) || max <= 1) {
