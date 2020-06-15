@@ -1,43 +1,5 @@
 import { CommandArg, CommandConfig, CommandOption } from './shared'
-
-type Section = {
-  title: string,
-  lines?: string | Array<undefined | string | string[]>,
-}
-
-const formatSection = (section: Section): string[] => {
-  let pad = ' '.repeat(2)
-
-  if (!section.lines || section.lines.length === 0) {
-    return []
-  }
-
-  if (typeof section.lines === 'string') {
-    return [section.title, section.lines]
-  }
-
-  let lines = section.lines.map((xs) => {
-    if (Array.isArray(xs)) {
-      let padding = 40
-      let [a, b] = xs
-      let line = `${a.padEnd(padding)}${b}`
-      return `${pad}${line}`
-    } else {
-      return `${pad}${xs}`
-    }
-  })
-
-  return [
-    section.title,
-    ...lines,
-  ]
-}
-
-const joinSections = (...xs: Section[]) => xs
-  .map(formatSection)
-  .filter(x => x.length > 0)
-  .map(x => `${x.join('\n')}`)
-  .join('\n\n')
+import { Section, formatSection, joinSections } from '../internal/util/format'
 
 const wrapArg = (x: CommandArg) => x.required ? `<${x.name}>` : `[${x.name}]`
 
