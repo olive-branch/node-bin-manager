@@ -1,0 +1,23 @@
+{
+  "binDependencies": {
+    "consul": {
+      "darwin": "https://releases.hashicorp.com/consul/1.7.3/consul_1.7.3_darwin_amd64.zip",
+      "win32": "https://releases.hashicorp.com/consul/1.7.3/consul_1.7.3_windows_amd64.zip",
+      "linux": "https://releases.hashicorp.com/consul/1.7.3/consul_1.7.3_linux_amd64.zip"
+    },
+    "k6": {
+      "darwin": "https://github.com/loadimpact/k6/releases/download/v0.26.2/k6-v0.26.2-mac.zip",
+      "win32": "https://github.com/loadimpact/k6/releases/download/v0.26.2/k6-v0.26.2-win64.zip",
+      "linux": "https://github.com/loadimpact/k6/releases/download/v0.26.2/k6-v0.26.2-linux64.tar.gz"
+    },
+    "deno": {
+      "darwin": "https://github.com/denoland/deno/releases/download/v1.0.5/deno-x86_64-apple-darwin.zip",
+      "win32": "https://github.com/denoland/deno/releases/download/v1.0.5/deno-x86_64-pc-windows-msvc.zip",
+      "linux": "https://github.com/denoland/deno/releases/download/v1.0.5/deno-x86_64-unknown-linux-gnu.zip"
+    },
+    "influx": {
+      "url": "https://dl.influxdata.com/influxdb/releases/influxdb_2.0.0-beta.10_linux_amd64.tar.gz",
+      "include": ["influx"]
+    }
+  }
+}
