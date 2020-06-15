@@ -91,4 +91,5 @@ package-deps.json
 **/dist
 
 todo.md
-data
+
+tmp
