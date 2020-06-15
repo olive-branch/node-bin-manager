@@ -1,8 +1,11 @@
 import fs from 'fs'
 import { promisify } from 'util'
+import { makeRe } from 'minimatch'
 
 const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
+
+const fromGlob = (x: string) => makeRe(x, { })
 
 export type Platform =
   | 'darwin'
@@ -14,6 +17,8 @@ type DependecySources = { [K in Platform]?: string }
 export type DependencyOptions = DependecySources & {
   url?: string,
   out?: string,
+  exclude?: string[],
+  include?: string[],
 }
 
 export type DependencyEntry = string | DependencyOptions
@@ -28,16 +33,20 @@ export type ParseEntryOptions = { platform: Platform, out: string }
 export type DependencyConfig = {
   key: string,
   out: string,
+  exclude: RegExp[],
+  include: RegExp[],
   url?: string,
 }
 export const fromEntries = ({ platform, out }: ParseEntryOptions) => ([key, value]: [string, DependencyEntry]): DependencyConfig => {
   if (typeof value === 'string') {
-    return { key, out, url: value }
+    return { key, out, url: value, exclude: [], include: [] }
   }
   if (typeof value === 'object') {
     let url = value[platform] || value.url
+    let include = Array.isArray(value.include) ? value.include.map(fromGlob) : []
+    let exclude = Array.isArray(value.exclude) ? value.exclude.map(fromGlob) : []
 
-    return { key, url, out: value.out || out }
+    return { key, url, include, exclude, out: value.out || out }
   }
 
   throw new TypeError(`Invalid binDependency format for ${key}. Value should be either string or object`)

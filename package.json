@@ -14,6 +14,7 @@
   "license": "MIT",
   "dependencies": {
     "lzma-native": "^6.0.0",
+    "minimatch": "^3.0.4",
     "ora": "^4.0.0",
     "tar-stream": "^2.0.0",
     "yargs-parser": "^18.0.0",
@@ -22,6 +23,7 @@
   "devDependencies": {
     "@types/jest": "^25.1.4",
     "@types/lzma-native": "^4.0.0",
+    "@types/minimatch": "^3.0.3",
     "@types/node": "12.12.2",
     "@types/progress": "^2.0.3",
     "@types/tar-stream": "^2.1.0",
@@ -38,13 +40,6 @@
     "typescript": "^3.8.3"
   },
   "binDependencies": {
-    "k6": {
-      "linux": "https://github.com/loadimpact/k6/releases/download/v0.26.2/k6-v0.26.2-linux64.tar.gz",
-      "win32": "https://github.com/loadimpact/k6/releases/download/v0.26.2/k6-v0.26.2-win64.zip",
-      "darwin": "https://github.com/loadimpact/k6/releases/download/v0.26.2/k6-v0.26.2-mac.zip"
-    },
-    "deno": {
-      "linux": "https://github.com/denoland/deno/releases/download/v1.0.5/deno-x86_64-unknown-linux-gnu.zip"
-    }
+    "k6": "https://github.com/loadimpact/k6/releases/download/v0.26.2/k6-v0.26.2-linux64.tar.gz"
   }
 }

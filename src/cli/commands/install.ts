@@ -1,11 +1,12 @@
 import { join, resolve } from 'path'
 import parseArgv from 'yargs-parser'
+import { makeRe } from 'minimatch'
 import { createLogger } from '../../internal/logger'
 import { restore, install, RestoreOptions } from '../../lib/restore'
 import { CommandHandler, CommandConfig, toArgsAliases, Command } from '../shared'
 import { Platform } from '../../internal/config'
 
-type CommandArgs = {
+export type CommandArgs = {
   quiet?: boolean,
   raw?: boolean,
   debug?: boolean,
@@ -13,6 +14,7 @@ type CommandArgs = {
   seq?: boolean,
   cwd?: string,
   out?: string,
+  config?: string,
   key?: string,
   platform?: string,
 }
@@ -39,6 +41,10 @@ const config: CommandConfig = {
       alias: ['c'],
       value: 'path',
       desc: 'Path to working directory with package.json and node_modules',
+    },
+    config: {
+      value: 'path',
+      desc: 'Path to configuration file; default is package.json in working directory'
     },
     out: {
       alias: ['o'],
@@ -75,10 +81,11 @@ const toOptions = (args: CommandArgs): RestoreOptions => {
   return {
     cwd,
     platform,
+    exclude: [makeRe('**/+(LICENSE|*.md)')],
     log: createLogger(args),
     outRaw: args.out,
-    out: args.out ? resolve(cwd, args.out!) : join(cwd, 'node_modules', '.bin'),
-    configPath: join(cwd, 'package.json'),
+    out: args.out ? resolve(cwd, args.out) : join(cwd, 'node_modules', '.bin'),
+    configPath: args.config ? resolve(cwd, args.config) : join(cwd, 'package.json'),
     ext: platform === 'win32' ? '.exe' : '',
     force: args.force || false,
     key: args.key,
