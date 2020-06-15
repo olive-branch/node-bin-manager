@@ -26,7 +26,7 @@ export type Command = {
   config: CommandConfig,
 }
 
-export const toArgsAliases = (config: CommandConfig) => {
+export function toArgsAliases<T = any>(config: CommandConfig<T>): { [key: string]: string[] } {
   if (!config.options) {
     return {}
   }
@@ -35,7 +35,10 @@ export const toArgsAliases = (config: CommandConfig) => {
     .entries(config.options)
     .filter(([, v]) => Boolean(v))
     .reduce(
-      (acc, [k, v]) => ({ ...acc, [k]: v!.alias || [] }),
+      (acc, [k, v]: [string, any]) => ({
+        ...acc,
+        [k]: v!.alias || [],
+      }),
       {},
     )
 }

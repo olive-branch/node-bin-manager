@@ -19,7 +19,7 @@ export type CommandArgs = {
   platform?: string,
 }
 
-const config: CommandConfig = {
+const config: CommandConfig<CommandArgs> = {
   name: 'install',
   desc: 'Download binaries from specified URL or package.json',
   options: {
