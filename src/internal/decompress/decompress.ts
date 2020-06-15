@@ -73,10 +73,8 @@ export const decompress = async <T>(
   let data: T[] = []
 
   await unarchive(stream, meta, async (src, file) => {
-    let filepath = map(file)
-
-    if (filter(filepath)) {
-      let item = await cb(src, filepath)
+    if (filter(file)) {
+      let item = await cb(src, map(file))
       data.push(item)
     }
 
