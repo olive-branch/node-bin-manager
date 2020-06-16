@@ -3,11 +3,10 @@ import { promisify } from 'util'
 import { join, basename, parse as parsePath } from 'path'
 import { Readable } from 'stream'
 
-import { fromEntries, loadConfig, updateConfig, DependencyConfig } from '../internal/config'
-import { fetch } from '../internal/fetch'
-import { decompress, DecompressMeta } from '../internal/decompress'
-import { flatten } from '../internal/util'
-import { concurrent, sequential } from '../internal/util/promise'
+import { fromEntries, loadConfig, updateConfig, DependencyConfig } from './internal/config'
+import { fetch } from './internal/fetch'
+import { decompress, DecompressMeta } from './internal/decompress'
+import { concurrent, sequential } from './internal/promise'
 
 import { BaseOptions, RestoreOptions, InstallContext } from './types'
 
@@ -76,8 +75,6 @@ const logComplete = (opts: BaseOptions, files: string[]) => {
   }
 }
 
-export * from './types'
-
 export const installContext = async (
   opts: InstallContext,
   writeFile: (content: Readable, name: string) => Promise<string>,
@@ -143,7 +140,7 @@ export const restore = async (opts: RestoreOptions) => {
 
   let tasks = ctx.map(x => () => installContext(x, saveFile))
   let results = opts.concurrent ? concurrent(tasks, onReject) : sequential(tasks, onReject)
-  let files = await results.then(flatten)
+  let files = await results.then(x => x.flat())
 
   logComplete(opts, files)
 

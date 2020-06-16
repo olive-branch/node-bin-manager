@@ -1,5 +1,5 @@
 import { CommandArg, CommandConfig, CommandOption } from './shared'
-import { Section, Paddings, joinSections } from '../internal/util/format'
+import { Section, Paddings, joinSections } from '../internal/format'
 
 const padding: Paddings = [0, 0, 0, 2]
 

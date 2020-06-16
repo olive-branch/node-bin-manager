@@ -1,4 +1,4 @@
-import { Middleware } from '../internal/util/middleware'
+import { Middleware } from '../internal/middleware'
 
 export type CommandHandler = Middleware<string[], Promise<number>>
 

@@ -1,7 +1,7 @@
 import parseArgs from 'yargs-parser'
 import { basename } from 'path'
-import { middleware } from '../internal/util/middleware'
 import { createLogger } from '../internal/logger'
+import { middleware } from '../internal/middleware'
 import { CommandHandler, CommandConfig, Command } from './shared'
 import { formatGeneralHelp, formatCommandHelp } from './help'
 

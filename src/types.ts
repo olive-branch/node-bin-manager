@@ -1,6 +1,6 @@
-import { Platform } from '../internal/config'
-import { Logger, CreateLoggerOptions } from '../internal/logger'
-import { DecompressOption } from '../internal/decompress'
+import { Platform } from './internal/config'
+import { Logger, CreateLoggerOptions } from './internal/logger'
+import { DecompressOption } from './internal/decompress'
 
 export type BaseOptions = {
   platform: Platform,

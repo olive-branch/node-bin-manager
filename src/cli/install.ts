@@ -1,10 +1,10 @@
 import { join, resolve } from 'path'
 import parseArgv from 'yargs-parser'
 import { makeRe } from 'minimatch'
-import { createLogger } from '../../internal/logger'
-import { restore, install, RestoreOptions } from '../../lib/restore'
-import { CommandHandler, CommandConfig, toArgsAliases, Command } from '../shared'
-import { Platform } from '../../internal/config'
+import { createLogger } from '../internal/logger'
+import { restore, install, RestoreOptions } from '..'
+import { CommandHandler, CommandConfig, toArgsAliases, Command } from './shared'
+import { Platform } from '../internal/config'
 
 export type CommandArgs = {
   quiet?: boolean,

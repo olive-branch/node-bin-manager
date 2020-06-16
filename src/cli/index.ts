@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { createApp } from './app'
-import { installCommand } from './commands/install'
+import { installCommand } from './install'
 
 const run = createApp(
   installCommand(),

@@ -10,7 +10,7 @@
     "url": "https://github.com/olive-branch/node-bin-dep"
   },
   "engines": {
-    "node": ">= 10.12.0"
+    "node": ">= 11.0.0"
   },
   "main": "index.js",
   "bin": {
