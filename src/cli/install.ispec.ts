@@ -2,7 +2,7 @@ import fs from 'fs'
 import { join, resolve } from 'path'
 import { installCommand, CommandArgs } from './install'
 
-const { binDependencies } = require('../../../bin.config.json')
+const { binDependencies } = require('../../bin.config.json')
 
 const formatArgs = (args: string[], opts: { [key: string]: any }) => Object.entries(opts).reduce(
   (acc, [k, v]) => {
