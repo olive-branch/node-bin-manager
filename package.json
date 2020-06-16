@@ -24,6 +24,7 @@
     "start": "ts-node src/cli",
     "build": "tsc",
     "test": "jest",
+    "lint": "eslint src --ext .js,.ts",
     "test:ci": "jest --testPathIgnorePatterns install.ispec",
     "test:unit": "jest -c jest.config.unit.js",
     "test:int": "jest -c jest.config.integration.js"
