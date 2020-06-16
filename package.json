@@ -11,7 +11,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/olive-branch/node-bin-dep"
+    "url": "https://github.com/olive-branch/node-bin-manager"
   },
   "engines": {
     "node": ">= 11.0.0"
