@@ -1,4 +1,5 @@
 import parseArgs from 'yargs-parser'
+import { basename } from 'path'
 import { middleware } from '../internal/util/middleware'
 import { createLogger } from '../internal/logger'
 import { CommandHandler, CommandConfig, Command } from './shared'
@@ -55,7 +56,8 @@ const fallback = (exe: string, cfg: CommandConfig[]): CommandHandler => () => {
   return generalHelp(exe, cfg, 1)
 }
 
-export const createApp = (name: string, ...cmds: Command[]) => {
+export const createApp = (...cmds: Command[]) => {
+  let name = basename(process.argv[1])
   let configs = cmds.map(x => x.config)
   let handlers = cmds.map(x => x.handler)
 

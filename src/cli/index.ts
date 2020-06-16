@@ -1,8 +1,9 @@
+#!/usr/bin/env node
+
 import { createApp } from './app'
 import { installCommand } from './commands/install'
 
 const run = createApp(
-  'bindeps',
   installCommand(),
 )
 
