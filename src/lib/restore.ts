@@ -78,7 +78,10 @@ const logComplete = (opts: BaseOptions, files: string[]) => {
 
 export * from './types'
 
-export const installContext = async (opts: InstallContext): Promise<string[]> => {
+export const installContext = async (
+  opts: InstallContext,
+  writeFile: (content: Readable, name: string) => Promise<string>,
+): Promise<string[]> => {
   let resp = await fetch(opts, opts.url)
 
   let meta: DecompressMeta = {
@@ -95,13 +98,13 @@ export const installContext = async (opts: InstallContext): Promise<string[]> =>
 
     let name = join(opts.out, filepath)
 
-    return saveFile(content, name)
+    return writeFile(content, name)
   })
 }
 
 export const install = async (opts: RestoreOptions, url: string) => {
   logStartup(opts, [url])
-  let files = await installContext({ ...opts, url })
+  let files = await installContext({ ...opts, url }, saveFile)
   logComplete(opts, files)
 
   let key = files.length === 1 ? fileName(files[0]) : opts.key
@@ -138,7 +141,7 @@ export const restore = async (opts: RestoreOptions) => {
     return []
   }
 
-  let tasks = ctx.map(x => () => installContext(x))
+  let tasks = ctx.map(x => () => installContext(x, saveFile))
   let results = opts.concurrent ? concurrent(tasks, onReject) : sequential(tasks, onReject)
   let files = await results.then(flatten)
 
