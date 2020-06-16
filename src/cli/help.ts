@@ -1,5 +1,7 @@
 import { CommandArg, CommandConfig, CommandOption } from './shared'
-import { Section, formatSection, joinSections } from '../internal/util/format'
+import { Section, Paddings, joinSections } from '../internal/util/format'
+
+const padding: Paddings = [0, 0, 0, 2]
 
 const wrapArg = (x: CommandArg) => x.required ? `<${x.name}>` : `[${x.name}]`
 
@@ -10,26 +12,29 @@ const formatUsage = (config: CommandConfig, exe: string): Section => {
   let usage = `${exe} ${name} ${args.map(wrapArg).join(' ')} [options]`
 
   return {
+    padding,
     title: 'USAGE',
     lines: [[usage, desc || '']],
   }
 }
 
 const formatArgs = (xs: CommandArg[]): Section => ({
+  padding,
   title: 'ARGS',
   lines: xs.map(x => [wrapArg(x), x.desc || '']),
 })
 
 const formatOptions = (xs: { [k: string]: CommandOption | undefined }): Section => ({
+  padding,
   title: 'OPTIONS',
   lines: Object
     .entries(xs)
     .filter(([, v]) => Boolean(v))
     .map(([key, x]: [string, CommandOption]) => {
       let desc = x.desc || ''
-      let alias = x.alias ? `-${x.alias}` : '  '
+      let alias = x.alias ? `-${x.alias} | ` : ''
       let value = x.value ? ` <${x.value}>` : ''
-      let name = `${alias} | --${key}${value}`
+      let name = `${alias}--${key}${value}`
 
       return [name, desc]
     }),
