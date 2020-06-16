@@ -2,7 +2,11 @@
   "name": "node-bin-manager",
   "version": "0.1.0",
   "description": "Manage remote binary dependecies in package.json",
-  "keywords": ["bin", "dependencies", "wget"],
+  "keywords": [
+    "bin",
+    "dependencies",
+    "wget"
+  ],
   "author": "n.m.batrakov",
   "license": "MIT",
   "repository": {
@@ -20,6 +24,7 @@
     "start": "ts-node src/cli",
     "build": "tsc && cp ./package.json dist",
     "test": "jest",
+    "test:ci": "jest --testPathIgnorePatterns install.ispec",
     "test:unit": "jest -c jest.config.unit.js",
     "test:int": "jest -c jest.config.integration.js"
   },
